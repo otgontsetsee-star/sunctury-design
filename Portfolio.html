@@ -1,0 +1,575 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="referrer" content="no-referrer" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Portfolio — Sunctury Design</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;700;800&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet" />
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<style>
+  *{ -webkit-font-smoothing:antialiased; }
+  html,body{ background:#0a0a0a; font-family:"Manrope",ui-sans-serif,system-ui,sans-serif; color:#fff; }
+  body{ overflow-x:hidden; }
+
+  /* Background — same blurred montage system */
+  .bg-layer{ position:fixed; inset:0; z-index:0; overflow:hidden; background:#0a0a0a; }
+  .bg-tile{
+    position:absolute; background-size:cover; background-position:center;
+    filter:blur(14px) saturate(.9) brightness(.5);
+    transform:scale(1.08);
+  }
+  .bg-grain::after{
+    content:""; position:fixed; inset:0; z-index:2; pointer-events:none;
+    background-image:radial-gradient(rgba(255,255,255,.05) 1px, transparent 1px);
+    background-size:3px 3px; mix-blend-mode:overlay; opacity:.4;
+  }
+  .bg-vignette::before{
+    content:""; position:fixed; inset:0; z-index:1; pointer-events:none;
+    background:radial-gradient(ellipse at 50% 30%, rgba(0,0,0,0) 0%, rgba(0,0,0,.6) 100%);
+  }
+  .orb{ position:fixed; border-radius:50%; filter:blur(80px); z-index:0; pointer-events:none; }
+
+  /* Glass */
+  .glass{
+    background:linear-gradient(180deg, rgba(255,255,255,.14), rgba(255,255,255,.06));
+    -webkit-backdrop-filter:blur(24px) saturate(140%);
+    backdrop-filter:blur(24px) saturate(140%);
+    border:1px solid rgba(255,255,255,.20);
+    box-shadow:
+      0 1px 0 rgba(255,255,255,.22) inset,
+      0 30px 80px -30px rgba(0,0,0,.55);
+    border-radius:24px;
+  }
+
+  /* Typography */
+  .display{ font-family:"Manrope",sans-serif; font-weight:800; letter-spacing:-0.045em; line-height:.92; }
+  .ultralight{ font-weight:200; letter-spacing:-0.02em; }
+  .serif{ font-family:"Instrument Serif",serif; font-weight:400; letter-spacing:-0.02em; line-height:.98; }
+  .eyebrow{ font-size:11px; letter-spacing:.32em; text-transform:uppercase; font-weight:500; }
+
+  /* Nav */
+  .nav-link{ position:relative; }
+  .nav-link::after{ content:""; position:absolute; left:0; right:0; bottom:-6px; height:1px; background:currentColor; transform:scaleX(0); transform-origin:left; transition:transform .4s cubic-bezier(.2,.7,.2,1); }
+  .nav-link:hover::after{ transform:scaleX(1); }
+  .nav-link.active::after{ transform:scaleX(1); }
+  .logo-img{ height:26px; filter:invert(1) brightness(1.2); }
+
+  .btn-glass{
+    display:inline-flex; align-items:center; gap:14px;
+    padding:16px 26px; border-radius:999px;
+    background:rgba(255,255,255,.10); border:1px solid rgba(255,255,255,.28);
+    -webkit-backdrop-filter:blur(16px); backdrop-filter:blur(16px);
+    color:#fff; font-size:12px; letter-spacing:.22em; text-transform:uppercase; font-weight:500;
+    transition:.4s; cursor:pointer;
+  }
+  .btn-glass:hover{ background:#fff; color:#0a0a0a; border-color:#fff; }
+
+  /* Filter pills */
+  .pill{
+    display:inline-flex; align-items:center; gap:8px;
+    padding:10px 18px; border-radius:999px;
+    background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.16);
+    color:rgba(255,255,255,.75); font-size:11px; letter-spacing:.22em; text-transform:uppercase; font-weight:500;
+    cursor:pointer; transition:.35s;
+    -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px);
+  }
+  .pill:hover{ color:#fff; border-color:rgba(255,255,255,.42); }
+  .pill.on{ background:#fff; color:#0a0a0a; border-color:#fff; }
+  .pill .count{ opacity:.55; font-size:10px; }
+
+  /* Masonry card */
+  .work-card{
+    position:relative; overflow:hidden; border-radius:20px;
+    border:1px solid rgba(255,255,255,.12);
+    isolation:isolate; cursor:pointer;
+    transition:transform .8s cubic-bezier(.2,.7,.2,1), border-color .6s ease;
+    will-change:transform;
+  }
+  .work-card:hover{ transform:translateY(-6px); border-color:rgba(255,255,255,.36); }
+  .work-card .img{
+    position:absolute; inset:0; background-size:cover; background-position:center;
+    transform:scale(1.02); transition:transform 1.6s cubic-bezier(.2,.7,.2,1), filter .8s ease;
+  }
+  .work-card:hover .img{ transform:scale(1.07); }
+  .work-card .veil{
+    position:absolute; inset:0; z-index:1;
+    background:linear-gradient(180deg, rgba(0,0,0,.05) 0%, rgba(0,0,0,.15) 45%, rgba(0,0,0,.78) 100%);
+    transition:background .6s ease;
+  }
+  .work-card:hover .veil{
+    background:linear-gradient(180deg, rgba(0,0,0,.0) 0%, rgba(0,0,0,.10) 45%, rgba(0,0,0,.7) 100%);
+  }
+  .work-card .meta{
+    position:absolute; left:22px; right:22px; bottom:20px; z-index:2;
+    display:flex; justify-content:space-between; align-items:flex-end; gap:12px;
+    color:#fff; text-shadow:0 2px 18px rgba(0,0,0,.55);
+  }
+  .work-card .topmeta{
+    position:absolute; left:22px; right:22px; top:20px; z-index:2;
+    display:flex; justify-content:space-between; align-items:flex-start;
+    color:#fff; font-size:10px; letter-spacing:.24em; text-transform:uppercase; opacity:.85;
+  }
+  .work-card .num{
+    border:1px solid rgba(255,255,255,.42); border-radius:999px; padding:5px 11px;
+    -webkit-backdrop-filter:blur(8px); backdrop-filter:blur(8px);
+    background:rgba(0,0,0,.18);
+  }
+  .work-card h3{ font-family:"Instrument Serif",serif; font-weight:400; font-size:26px; letter-spacing:-0.01em; line-height:1.02; max-width:75%; }
+  .work-card .place{ font-size:10px; letter-spacing:.22em; text-transform:uppercase; opacity:.78; margin-top:6px; }
+  .work-card .arrow{
+    width:38px; height:38px; border-radius:50%; border:1px solid rgba(255,255,255,.45);
+    display:grid; place-items:center;
+    background:rgba(255,255,255,.08);
+    -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px);
+    transition:.45s; flex-shrink:0;
+  }
+  .work-card:hover .arrow{ background:#fff; color:#0a0a0a; border-color:#fff; }
+
+  /* Featured spread (first row) */
+  .feat-grid{
+    display:grid;
+    grid-template-columns: 1.7fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    gap:18px;
+    height: 720px;
+  }
+  .feat-grid > :nth-child(1){ grid-row: 1 / span 2; }
+  @media (max-width: 900px){
+    .feat-grid{ display:flex; flex-direction:column; height:auto; }
+    .feat-grid > *{ height:380px; }
+  }
+
+  /* Mosaic — varied heights */
+  .mosaic{ column-count: 3; column-gap: 18px; }
+  @media (max-width: 1100px){ .mosaic{ column-count: 2; } }
+  @media (max-width: 640px){ .mosaic{ column-count: 1; } }
+  .mosaic .work-card{ break-inside:avoid; margin-bottom:18px; display:block; }
+  .m-tall{ height: 540px; }
+  .m-mid{ height: 420px; }
+  .m-short{ height: 320px; }
+
+  /* Lightbox */
+  .lb-back{
+    position:fixed; inset:0; z-index:90;
+    background:rgba(8,8,8,.78);
+    -webkit-backdrop-filter:blur(28px) saturate(130%);
+    backdrop-filter:blur(28px) saturate(130%);
+    opacity:0; pointer-events:none; transition:opacity .45s ease;
+  }
+  .lb-back.on{ opacity:1; pointer-events:auto; }
+  .lb-frame{
+    position:fixed; inset:0; z-index:91; display:grid; place-items:center; padding:32px;
+    pointer-events:none;
+  }
+  .lb-frame.on{ pointer-events:auto; }
+  .lb-card{
+    position:relative; max-width:min(1240px,100%); width:100%; max-height:88vh;
+    background:rgba(20,20,20,.55); border-radius:24px; overflow:hidden;
+    border:1px solid rgba(255,255,255,.16);
+    -webkit-backdrop-filter:blur(30px) saturate(140%);
+    backdrop-filter:blur(30px) saturate(140%);
+    transform:translateY(20px) scale(.97); opacity:0;
+    transition:transform .55s cubic-bezier(.2,.7,.2,1), opacity .45s ease;
+    display:grid; grid-template-columns: 1.4fr 1fr;
+  }
+  .lb-back.on + .lb-frame .lb-card{ transform:none; opacity:1; }
+  @media (max-width:900px){ .lb-card{ grid-template-columns:1fr; max-height:92vh; overflow-y:auto; } }
+  .lb-img{ position:relative; min-height:520px; background:#111; }
+  .lb-img img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
+  .lb-body{ padding:42px 44px; display:flex; flex-direction:column; justify-content:space-between; gap:32px; }
+  .lb-close{
+    position:absolute; top:18px; right:18px; z-index:5; width:42px; height:42px;
+    display:grid; place-items:center; border-radius:50%;
+    background:rgba(0,0,0,.4); border:1px solid rgba(255,255,255,.28);
+    color:#fff; cursor:pointer; transition:.3s;
+    -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px);
+  }
+  .lb-close:hover{ background:#fff; color:#0a0a0a; }
+
+  /* Reveal on scroll */
+  @media (prefers-reduced-motion:no-preference){
+    .sr{ opacity:0; transform:translateY(36px); transition:opacity 1s cubic-bezier(.2,.7,.2,1), transform 1s cubic-bezier(.2,.7,.2,1); }
+    .sr.in{ opacity:1; transform:none; }
+    .sr-stagger > *{ opacity:0; transform:translateY(28px); transition:opacity .9s cubic-bezier(.2,.7,.2,1), transform .9s cubic-bezier(.2,.7,.2,1); }
+    .sr-stagger.in > *{ opacity:1; transform:none; }
+    .sr-stagger.in > *:nth-child(1){ transition-delay:.05s; }
+    .sr-stagger.in > *:nth-child(2){ transition-delay:.14s; }
+    .sr-stagger.in > *:nth-child(3){ transition-delay:.23s; }
+    .sr-stagger.in > *:nth-child(4){ transition-delay:.32s; }
+    .sr-stagger.in > *:nth-child(5){ transition-delay:.41s; }
+    .sr-stagger.in > *:nth-child(6){ transition-delay:.50s; }
+    .sr-stagger.in > *:nth-child(7){ transition-delay:.59s; }
+    .sr-stagger.in > *:nth-child(8){ transition-delay:.68s; }
+    .sr-stagger.in > *:nth-child(9){ transition-delay:.77s; }
+    .sr-stagger.in > *:nth-child(10){ transition-delay:.86s; }
+  }
+</style>
+</head>
+<body data-screen-label="Portfolio Archive">
+<div id="root"></div>
+
+<script type="text/babel" data-presets="env,react">
+const { useEffect, useState, useMemo } = React;
+
+// ─── DATA ─────────────────────────────────────────────
+const WORKS = [
+  { id:1,  title:"The Living Canopy",      place:"Khan Bank · Atrium",          year:"2024", cat:"Commercial",   tag:"Atrium",      span:"feat-hero",    img:"assets/proj-khan-1.jpg",  h:"m-tall",  desc:"A six-storey hall returned to daylight. Reclaimed oak vaulting, low-carbon plaster, and 412 plants curated for Ulaanbaatar's microclimate." },
+  { id:2,  title:"Boardroom 04",           place:"Private Client · Executive",  year:"2024", cat:"Workplace",    tag:"Boardroom",   span:"feat-tl",      img:"assets/proj-ceo-1.jpg",   h:"m-mid",   desc:"A twelve-seat table cut from a single felled larch. Acoustic plaster, hand-rubbed brass detailing, blackout shutters of woven reed." },
+  { id:3,  title:"Hall of Light",          place:"Khan Bank · Concourse",       year:"2023", cat:"Commercial",   tag:"Concourse",   span:"feat-bl",      img:"assets/proj-khan-2.jpg",  h:"m-tall",  desc:"A 38-metre concourse stitched with linear pendants and a continuous reveal in micro-cement. The light is the architecture." },
+  { id:4,  title:"Service Pods",           place:"Khan Bank · Kiosk Bay",       year:"2023", cat:"Commercial",   tag:"Banking",     span:"",             img:"assets/proj-khan-3.jpg",  h:"m-mid",   desc:"Six FSC-veneer pods arranged on a quiet rhythm — soft seating, glare-free task light, and a planted spine that screens without separating." },
+  { id:5,  title:"The Geometric Wall",     place:"Executive Suite · Detail",    year:"2023", cat:"Workplace",    tag:"Detail",      span:"",             img:"assets/proj-ceo-2.jpg",   h:"m-short", desc:"Hand-fitted slats of stained ash form a wall that hides everything: the safe, the bar, the document well. A second skin." },
+  { id:6,  title:"Reception 01",           place:"ARA Tower · Lobby",           year:"2024", cat:"Hospitality",  tag:"Reception",   span:"",             img:"assets/svc-01.jpg",       h:"m-mid",   desc:"Honed marble, oak fluting, and a chandelier of cast bronze branches. The first thirty seconds of a workplace, made memorable." },
+  { id:7,  title:"The Reading Room",       place:"Aminii Suuts · Library",      year:"2022", cat:"Cultural",     tag:"Library",     span:"",             img:"assets/proj-library.jpg", h:"m-tall",  desc:"A double-height reading hall with 1,400 linear feet of shelving and a single suspended walkway. The quietest room we have built." },
+  { id:8,  title:"The Quiet Room",         place:"Executive Suite · Lounge",    year:"2022", cat:"Workplace",    tag:"Lounge",      span:"",             img:"assets/proj-rest-1.jpg",  h:"m-mid",   desc:"A windowless sanctuary made entirely of texture — bouclé, wool, lime plaster, and a single piece of black walnut. For the half-hour between meetings." },
+  { id:9,  title:"Atrium Reception",       place:"Khan Bank · Lobby",           year:"2022", cat:"Commercial",   tag:"Lobby",       span:"",             img:"assets/proj-khan-5.jpg",  h:"m-short", desc:"A travertine plinth, a planted moat, and four custom benches of wire-brushed oak. The civic gesture of a banking hall." },
+  { id:10, title:"Studio Floor",           place:"Editorial Office · Workroom", year:"2024", cat:"Workplace",    tag:"Open Plan",   span:"",             img:"assets/svc-02.jpg",       h:"m-mid",   desc:"A working floor with no apologies: red oak benches, exposed track lighting, and an editorial wall that doubles as moodboard and announcement." },
+  { id:11, title:"Cinema Snug",            place:"Penthouse · Mezzanine",       year:"2024", cat:"Residential",  tag:"Snug",        span:"",             img:"assets/svc-03.jpg",       h:"m-tall",  desc:"A six-square-metre snug under a steel mezzanine — projector, single curved sofa, hand-loomed Anatolian rug. A pocket of dusk." },
+  { id:12, title:"Khan · Side Hall",       place:"Khan Bank · Corridor",        year:"2023", cat:"Commercial",   tag:"Circulation", span:"",             img:"assets/proj-khan-4.jpg",  h:"m-short", desc:"The connective tissue of a building. A long corridor warmed with engineered oak, brushed-steel rails, and a single artwork at the turn." },
+  { id:13, title:"CEO Threshold",          place:"Executive Suite · Entry",     year:"2023", cat:"Workplace",    tag:"Entry",       span:"",             img:"assets/proj-ceo-3.jpg",   h:"m-mid",   desc:"The door to the principal's office, treated as a room. A vestibule of figured maple and a bench for waiting. A pause built into the floor plan." },
+];
+
+const CATS = ["All", "Workplace", "Commercial", "Cultural", "Hospitality", "Residential"];
+
+// ─── BG ───────────────────────────────────────────────
+function Background(){
+  return (
+    <div className="bg-layer bg-vignette bg-grain">
+      <div className="bg-tile" style={{inset:"0 50% 50% 0", backgroundImage:"url(assets/proj-khan-1.jpg)"}} />
+      <div className="bg-tile" style={{inset:"0 0 50% 50%", backgroundImage:"url(assets/proj-khan-2.jpg)"}} />
+      <div className="bg-tile" style={{inset:"50% 50% 0 0", backgroundImage:"url(assets/proj-ceo-1.jpg)"}} />
+      <div className="bg-tile" style={{inset:"50% 0 0 50%", backgroundImage:"url(assets/svc-01.jpg)"}} />
+      <div className="orb" style={{width:520, height:520, background:"rgba(255,255,255,.08)", top:"10%", left:"60%"}} />
+      <div className="orb" style={{width:380, height:380, background:"rgba(255,255,255,.06)", top:"60%", left:"5%"}} />
+    </div>
+  );
+}
+
+// ─── NAV ──────────────────────────────────────────────
+function Nav(){
+  const [scrolled, setScrolled] = useState(false);
+  useEffect(()=>{
+    const onScroll = ()=> setScrolled(window.scrollY > 40);
+    window.addEventListener('scroll', onScroll, {passive:true});
+    return ()=> window.removeEventListener('scroll', onScroll);
+  },[]);
+  return (
+    <nav className="fixed top-0 inset-x-0 z-50 px-6 md:px-10 py-5 transition-all duration-500"
+         style={{ background: scrolled ? "rgba(10,10,10,.45)" : "rgba(10,10,10,.20)",
+                  backdropFilter: "blur(20px) saturate(140%)",
+                  WebkitBackdropFilter:"blur(20px) saturate(140%)",
+                  borderBottom: scrolled ? "1px solid rgba(255,255,255,.10)" : "1px solid rgba(255,255,255,.04)" }}>
+      <div className="max-w-[1440px] mx-auto flex items-center justify-between text-white">
+        <a href="Sanctur Glass.html" className="flex items-center">
+          <img src="assets/logo.png" alt="Sunctury Design" className="logo-img" />
+        </a>
+        <ul className="hidden md:flex items-center gap-10 text-[12px] tracking-[.22em] uppercase font-medium">
+          <li><a href="Sanctur Glass.html#about" className="nav-link">About</a></li>
+          <li><a href="Sanctur Glass.html#services" className="nav-link">Services</a></li>
+          <li><a href="Portfolio.html" className="nav-link active">Portfolio</a></li>
+          <li><a href="Sanctur Glass.html#contact" className="nav-link">Contact</a></li>
+        </ul>
+        <a href="Sanctur Glass.html#contact" className="btn-glass !py-3 !px-5">Begin
+          <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6"><path d="M5 12 H19 M13 6 L19 12 L13 18"/></svg>
+        </a>
+      </div>
+    </nav>
+  );
+}
+
+// ─── HEADER ───────────────────────────────────────────
+function Header(){
+  return (
+    <header className="relative px-6 md:px-10 pt-40 pb-20 md:pt-48 md:pb-24" data-screen-label="Header">
+      <div className="max-w-[1440px] mx-auto">
+        <div className="grid md:grid-cols-12 gap-8 items-end">
+          <div className="md:col-span-7 sr">
+            <div className="eyebrow text-white/70 mb-6 flex items-center gap-3">
+              <span className="w-8 h-px bg-white/40"></span>
+              The Archive · 2018 — 2026
+            </div>
+            <h1 className="serif text-white text-6xl md:text-8xl lg:text-[112px]" style={{lineHeight:.94}}>
+              Thirteen rooms.<br/>
+              <span className="italic">One quiet practice.</span>
+            </h1>
+          </div>
+          <div className="md:col-span-4 md:col-start-9 sr">
+            <p className="text-white/70 text-[15px] leading-[1.75] font-light max-w-sm">
+              Sunctury has delivered <span className="text-white">62 commissions</span> across banking halls, executive suites, libraries, and a single, very particular cinema snug. This is the public part of it.
+            </p>
+            <div className="mt-8 grid grid-cols-3 gap-4 text-white">
+              <div>
+                <div className="serif text-4xl">62</div>
+                <div className="eyebrow text-white/55 mt-1">Built</div>
+              </div>
+              <div>
+                <div className="serif text-4xl">11<span className="text-white/40">y</span></div>
+                <div className="eyebrow text-white/55 mt-1">Practice</div>
+              </div>
+              <div>
+                <div className="serif text-4xl">8</div>
+                <div className="eyebrow text-white/55 mt-1">A Year</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+  );
+}
+
+// ─── FILTERS ──────────────────────────────────────────
+function Filters({ active, setActive, counts }){
+  return (
+    <div className="relative px-6 md:px-10 pb-10 sr">
+      <div className="max-w-[1440px] mx-auto flex flex-wrap items-center gap-3">
+        {CATS.map(c => (
+          <button key={c}
+                  onClick={()=>setActive(c)}
+                  className={"pill " + (active===c ? "on" : "")}>
+            {c}
+            <span className="count">{counts[c] ?? 0}</span>
+          </button>
+        ))}
+        <div className="ml-auto eyebrow text-white/50 hidden md:block">
+          Hover any tile · Click to expand
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── CARD ─────────────────────────────────────────────
+function Card({ w, onOpen, height }){
+  return (
+    <article className={"work-card " + (height || "")} onClick={()=>onOpen(w)}>
+      <div className="img" style={{backgroundImage:`url(${w.img})`}}></div>
+      <div className="veil"></div>
+      <div className="topmeta">
+        <span className="num">№ {String(w.id).padStart(2,'0')}</span>
+        <span>{w.year}</span>
+      </div>
+      <div className="meta">
+        <div>
+          <h3>{w.title}</h3>
+          <div className="place">{w.place}</div>
+        </div>
+        <div className="arrow">
+          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4"><path d="M7 17 L17 7 M9 7 H17 V15"/></svg>
+        </div>
+      </div>
+    </article>
+  );
+}
+
+// ─── FEATURED SPREAD ──────────────────────────────────
+function Featured({ items, onOpen }){
+  if(items.length < 3) return null;
+  return (
+    <section className="relative px-6 md:px-10 pb-12 sr">
+      <div className="max-w-[1440px] mx-auto">
+        <div className="feat-grid">
+          <Card w={items[0]} onOpen={onOpen} height="" />
+          <Card w={items[1]} onOpen={onOpen} height="" />
+          <Card w={items[2]} onOpen={onOpen} height="" />
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ─── MOSAIC ───────────────────────────────────────────
+function Mosaic({ items, onOpen }){
+  return (
+    <section className="relative px-6 md:px-10 pb-24">
+      <div className="max-w-[1440px] mx-auto">
+        <div className="mosaic sr-stagger">
+          {items.map(w => <Card key={w.id} w={w} onOpen={onOpen} height={w.h} />)}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ─── LIGHTBOX ─────────────────────────────────────────
+function Lightbox({ work, onClose, onPrev, onNext }){
+  useEffect(()=>{
+    const onKey = (e)=>{
+      if(!work) return;
+      if(e.key === 'Escape') onClose();
+      if(e.key === 'ArrowLeft') onPrev();
+      if(e.key === 'ArrowRight') onNext();
+    };
+    window.addEventListener('keydown', onKey);
+    return ()=> window.removeEventListener('keydown', onKey);
+  },[work, onClose, onPrev, onNext]);
+
+  useEffect(()=>{
+    document.body.style.overflow = work ? 'hidden' : '';
+  },[work]);
+
+  return (
+    <>
+      <div className={"lb-back " + (work ? "on" : "")} onClick={onClose}></div>
+      <div className={"lb-frame " + (work ? "on" : "")}>
+        {work && (
+          <div className="lb-card" onClick={(e)=>e.stopPropagation()}>
+            <button className="lb-close" onClick={onClose} aria-label="Close">
+              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6"><path d="M6 6 L18 18 M18 6 L6 18"/></svg>
+            </button>
+            <div className="lb-img">
+              <img src={work.img} alt={work.title} />
+            </div>
+            <div className="lb-body">
+              <div>
+                <div className="eyebrow text-white/55 mb-4 flex items-center gap-3">
+                  <span>№ {String(work.id).padStart(2,'0')}</span>
+                  <span className="w-6 h-px bg-white/30"></span>
+                  <span>{work.cat}</span>
+                </div>
+                <h2 className="serif text-white text-5xl md:text-6xl mb-3">{work.title}</h2>
+                <div className="text-white/65 text-[12px] tracking-[.22em] uppercase mb-8">{work.place} · {work.year}</div>
+                <p className="text-white/80 text-[15px] leading-[1.8] font-light">{work.desc}</p>
+              </div>
+              <div className="border-t border-white/14 pt-6 grid grid-cols-3 gap-4 text-white">
+                <div>
+                  <div className="eyebrow text-white/50 mb-2">Tag</div>
+                  <div className="font-light text-sm">{work.tag}</div>
+                </div>
+                <div>
+                  <div className="eyebrow text-white/50 mb-2">Year</div>
+                  <div className="font-light text-sm">{work.year}</div>
+                </div>
+                <div>
+                  <div className="eyebrow text-white/50 mb-2">Sector</div>
+                  <div className="font-light text-sm">{work.cat}</div>
+                </div>
+              </div>
+              <div className="flex justify-between items-center">
+                <button className="btn-glass" onClick={onPrev}>
+                  <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6"><path d="M19 12 H5 M11 6 L5 12 L11 18"/></svg>
+                  Prev
+                </button>
+                <button className="btn-glass" onClick={onNext}>
+                  Next
+                  <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6"><path d="M5 12 H19 M13 6 L19 12 L13 18"/></svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </>
+  );
+}
+
+// ─── FOOTER ───────────────────────────────────────────
+function Footer(){
+  return (
+    <footer className="relative px-6 md:px-10 pb-16 pt-12">
+      <div className="max-w-[1440px] mx-auto">
+        <div className="glass p-10 md:p-14 sr">
+          <div className="grid md:grid-cols-12 gap-8 items-end">
+            <div className="md:col-span-7">
+              <div className="eyebrow text-white/65 mb-4">Commission</div>
+              <h3 className="serif text-white text-4xl md:text-5xl">Eight rooms a year.<br/><span className="italic">One of them could be yours.</span></h3>
+            </div>
+            <div className="md:col-span-5 flex md:justify-end gap-3">
+              <a href="Sanctur Glass.html#contact" className="btn-glass" style={{background:"#fff", color:"#0a0a0a", borderColor:"#fff"}}>Begin Enquiry
+                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6"><path d="M5 12 H19 M13 6 L19 12 L13 18"/></svg>
+              </a>
+              <a href="Sanctur Glass.html" className="btn-glass">Back to Studio</a>
+            </div>
+          </div>
+        </div>
+        <div className="mt-12 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 text-white/45 text-[12px] tracking-[.04em]">
+          <img src="assets/logo.png" alt="Sunctury Design" className="logo-img !h-5 opacity-70" />
+          <div>© 2026 Sunctury Design · The Archive</div>
+          <div className="flex gap-6">
+            <a href="https://www.instagram.com/suncturydesign/?hl=en" target="_blank" rel="noreferrer" className="nav-link">Instagram</a>
+            <a href="https://www.facebook.com/SuncturyDesign" target="_blank" rel="noreferrer" className="nav-link">Facebook</a>
+          </div>
+        </div>
+      </div>
+    </footer>
+  );
+}
+
+// ─── APP ──────────────────────────────────────────────
+function App(){
+  const [active, setActive] = useState("All");
+  const [open, setOpen] = useState(null);
+
+  // reveal
+  useEffect(()=>{
+    const io = new IntersectionObserver((entries)=>{
+      entries.forEach(e=>{
+        if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); }
+      });
+    },{threshold:0.12, rootMargin:"0px 0px -8% 0px"});
+    document.querySelectorAll('.sr, .sr-stagger').forEach(el=>io.observe(el));
+    return ()=>io.disconnect();
+  },[active]);
+
+  const filtered = useMemo(()=>
+    active === "All" ? WORKS : WORKS.filter(w => w.cat === active),
+  [active]);
+
+  const counts = useMemo(()=>{
+    const out = { All: WORKS.length };
+    CATS.slice(1).forEach(c => { out[c] = WORKS.filter(w => w.cat === c).length; });
+    return out;
+  },[]);
+
+  // featured = first 3 of filtered, rest = mosaic
+  const featured = filtered.slice(0,3);
+  const rest = filtered.slice(3);
+
+  const onPrev = ()=>{
+    if(!open) return;
+    const idx = filtered.findIndex(w => w.id === open.id);
+    const next = filtered[(idx - 1 + filtered.length) % filtered.length];
+    setOpen(next);
+  };
+  const onNext = ()=>{
+    if(!open) return;
+    const idx = filtered.findIndex(w => w.id === open.id);
+    const next = filtered[(idx + 1) % filtered.length];
+    setOpen(next);
+  };
+
+  return (
+    <>
+      <Background />
+      <Nav />
+      <main className="relative z-10">
+        <Header />
+        <Filters active={active} setActive={setActive} counts={counts} />
+        <Featured items={featured} onOpen={setOpen} />
+        <Mosaic items={rest} onOpen={setOpen} />
+        <Footer />
+      </main>
+      <Lightbox work={open} onClose={()=>setOpen(null)} onPrev={onPrev} onNext={onNext} />
+    </>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+<script>
+  // Force social links to open in a real new tab (escapes preview iframe)
+  document.addEventListener('click', function(e){
+    var a = e.target.closest && e.target.closest('a[href^="https://www.instagram.com"], a[href^="https://www.facebook.com"]');
+    if(!a) return;
+    e.preventDefault();
+    try { (window.top || window).open(a.href, '_blank', 'noreferrer'); }
+    catch(_) { window.open(a.href, '_blank', 'noreferrer'); }
+  }, true);
+</script>
+</body>
+</html>

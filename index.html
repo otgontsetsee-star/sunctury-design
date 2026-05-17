@@ -1,0 +1,770 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="referrer" content="no-referrer" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Sunctury Design — The Future of Eco-Office</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;700;800&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet" />
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<style>
+  :root{
+    --ink:#0a0a0a;
+    --paper:#f4f3ef;
+  }
+  *{ -webkit-font-smoothing:antialiased; }
+  html,body{ background:#0a0a0a; font-family:"Manrope",ui-sans-serif,system-ui,sans-serif; color:#0a0a0a; }
+  body{ overflow-x:hidden; }
+
+  /* Background layer — montage of project images, heavily blurred */
+  .bg-layer{
+    position:fixed; inset:0; z-index:0; overflow:hidden; background:#111;
+  }
+  .bg-tile{
+    position:absolute; background-size:cover; background-position:center;
+    filter:blur(12px) saturate(.9) brightness(.55);
+    transform:scale(1.08);
+    will-change:transform;
+  }
+  .bg-grain::after{
+    content:""; position:fixed; inset:0; z-index:2; pointer-events:none;
+    background-image:radial-gradient(rgba(255,255,255,.05) 1px, transparent 1px);
+    background-size:3px 3px; mix-blend-mode:overlay; opacity:.4;
+  }
+  .bg-vignette::before{
+    content:""; position:fixed; inset:0; z-index:1; pointer-events:none;
+    background:radial-gradient(ellipse at 50% 30%, rgba(0,0,0,0) 0%, rgba(0,0,0,.55) 100%);
+  }
+
+  /* Glass card */
+  .glass{
+    background:linear-gradient(180deg, rgba(255,255,255,.16), rgba(255,255,255,.08));
+    -webkit-backdrop-filter:blur(28px) saturate(140%);
+    backdrop-filter:blur(28px) saturate(140%);
+    border:1px solid rgba(255,255,255,.22);
+    box-shadow:
+      0 1px 0 rgba(255,255,255,.25) inset,
+      0 30px 80px -30px rgba(0,0,0,.55),
+      0 8px 24px -10px rgba(0,0,0,.35);
+    border-radius:28px;
+  }
+  .glass-dark{
+    background:linear-gradient(180deg, rgba(10,10,10,.55), rgba(10,10,10,.4));
+    -webkit-backdrop-filter:blur(24px) saturate(140%);
+    backdrop-filter:blur(24px) saturate(140%);
+    border:1px solid rgba(255,255,255,.14);
+    border-radius:28px;
+  }
+
+  /* Reveal-card — frost OFF on services + portfolio (sharp by default) */
+  .reveal-card{ position:relative; overflow:hidden; border-radius:24px; isolation:isolate; }
+  .reveal-card .sharp{
+    position:absolute; inset:0; background-size:cover; background-position:center;
+    transform:scale(1.02);
+    transition:transform 1.6s cubic-bezier(.2,.7,.2,1), filter .6s ease;
+  }
+  .reveal-card:hover .sharp{ transform:scale(1.06); }
+  .reveal-card .frost{
+    position:absolute; inset:0;
+    background:linear-gradient(180deg, rgba(0,0,0,.05) 0%, rgba(0,0,0,.25) 60%, rgba(0,0,0,.65) 100%);
+    border:1px solid rgba(255,255,255,.16);
+    border-radius:24px;
+    transition:background .8s ease;
+    z-index:1;
+  }
+  .reveal-card:hover .frost{
+    background:linear-gradient(180deg, rgba(0,0,0,0) 30%, rgba(0,0,0,.55) 100%);
+  }
+
+  /* drip cursor highlight for the wipe */
+  .reveal-card .wipe-hint{
+    position:absolute; inset:auto 0 0 0; padding:18px 20px; z-index:2;
+    display:flex; justify-content:space-between; align-items:center;
+    color:#fff; font-size:11px; letter-spacing:.22em; text-transform:uppercase;
+    opacity:.82; pointer-events:none;
+    text-shadow:0 1px 12px rgba(0,0,0,.6);
+  }
+
+  /* big reveal section (about + featured) */
+  .reveal-pane{ position:relative; overflow:hidden; }
+  .reveal-pane .pane-sharp{
+    position:absolute; inset:0; background-size:cover; background-position:center;
+    filter:saturate(.9);
+  }
+  .reveal-pane .pane-frost{
+    position:absolute; inset:0;
+    -webkit-backdrop-filter:blur(40px) saturate(120%);
+    backdrop-filter:blur(40px) saturate(120%);
+    background:linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.04));
+    transition:backdrop-filter 1.2s cubic-bezier(.2,.7,.2,1),
+               -webkit-backdrop-filter 1.2s cubic-bezier(.2,.7,.2,1);
+  }
+  .reveal-pane:hover .pane-frost{
+    -webkit-backdrop-filter:blur(0px);
+    backdrop-filter:blur(0px);
+  }
+
+  /* Scroll reveal */
+  @media (prefers-reduced-motion:no-preference){
+    .sr{ opacity:0; transform:translateY(36px); transition:opacity 1s cubic-bezier(.2,.7,.2,1), transform 1s cubic-bezier(.2,.7,.2,1); }
+    .sr.in{ opacity:1; transform:none; }
+    .sr-stagger > *{ opacity:0; transform:translateY(28px); transition:opacity .9s cubic-bezier(.2,.7,.2,1), transform .9s cubic-bezier(.2,.7,.2,1); }
+    .sr-stagger.in > *{ opacity:1; transform:none; }
+    .sr-stagger.in > *:nth-child(1){ transition-delay:.05s; }
+    .sr-stagger.in > *:nth-child(2){ transition-delay:.18s; }
+    .sr-stagger.in > *:nth-child(3){ transition-delay:.31s; }
+    .sr-stagger.in > *:nth-child(4){ transition-delay:.44s; }
+    .sr-stagger.in > *:nth-child(5){ transition-delay:.57s; }
+    .sr-stagger.in > *:nth-child(6){ transition-delay:.70s; }
+    @keyframes floatY{ 0%,100%{ transform:translateY(0)} 50%{ transform:translateY(-8px)} }
+    .float-y{ animation:floatY 7s ease-in-out infinite; }
+    @keyframes orbDrift{ 0%,100%{ transform:translate(0,0) scale(1)} 50%{ transform:translate(40px,-30px) scale(1.08)} }
+    .orb{ position:fixed; border-radius:50%; filter:blur(80px); z-index:0; animation:orbDrift 18s ease-in-out infinite; pointer-events:none; }
+  }
+
+  /* Typography helpers */
+  .display{ font-family:"Manrope",sans-serif; font-weight:800; letter-spacing:-0.045em; line-height:.92; }
+  .ultralight{ font-weight:200; letter-spacing:-0.02em; }
+  .eyebrow{ font-size:11px; letter-spacing:.32em; text-transform:uppercase; font-weight:500; }
+
+  /* Hero typography — editorial serif */
+  .hero-serif{ font-family:"Instrument Serif","Cormorant Garamond",serif; font-weight:400; font-style:normal; letter-spacing:-0.025em; line-height:.98; }
+  .hero-serif .bold{ font-weight:400; }
+  .hero-serif .italic{ font-style:italic; font-weight:400; }
+  .hero-stack{ display:flex; flex-direction:column; gap:0.04em; }
+  .hero-stack > span{ display:block; }
+
+  /* 3D Section */
+  .scene-3d{ perspective:1600px; perspective-origin:50% 45%; outline:none !important; border:0 !important; box-shadow:none !important; -webkit-tap-highlight-color:transparent; }
+  .scene-3d, .scene-3d *{ outline:none !important; -webkit-tap-highlight-color:transparent !important; }
+  .scene-3d :focus, .scene-3d :focus-visible, .scene-3d:focus, .scene-3d:focus-visible{ outline:none !important; box-shadow:none !important; }
+  .ring, .tilt-3d{ border:0 !important; outline:0 !important; box-shadow:none !important; }
+  .ring{ position:relative; width:100%; height:520px; transform-style:preserve-3d; will-change:transform; transition:transform .15s linear; }
+  @media (min-width:768px){ .ring{ height:640px; } }
+  .ring .card3d{
+    position:absolute; left:50%; top:50%;
+    width:240px; height:340px; margin:-170px 0 0 -120px;
+    border-radius:18px; overflow:hidden;
+    border:1px solid rgba(255,255,255,.20);
+    box-shadow:0 30px 80px -30px rgba(0,0,0,.6), 0 2px 0 rgba(255,255,255,.15) inset;
+    transform-style:preserve-3d;
+    background:#111;
+  }
+  @media (min-width:768px){ .ring .card3d{ width:300px; height:420px; margin:-210px 0 0 -150px; } }
+  .ring .card3d img{ width:100%; height:100%; object-fit:cover; display:block; transition:transform 1.2s cubic-bezier(.2,.7,.2,1); backface-visibility:hidden; -webkit-backface-visibility:hidden; }
+  .ring .card3d{ backface-visibility:hidden; -webkit-backface-visibility:hidden; }
+  .ring .card3d .label{ position:absolute; inset:auto 0 0 0; padding:18px 20px; color:#fff; background:linear-gradient(180deg,rgba(0,0,0,0),rgba(0,0,0,.7)); display:flex; justify-content:space-between; align-items:end; }
+  .ring .card3d .label h4{ font-family:"Instrument Serif",serif; font-weight:400; font-size:18px; letter-spacing:-0.01em; }
+  .ring .card3d .label .y{ font-size:10px; letter-spacing:.22em; text-transform:uppercase; opacity:.75; }
+  .ring .card3d .glare{ position:absolute; inset:0; pointer-events:none; background:linear-gradient(115deg, rgba(255,255,255,.18) 0%, rgba(255,255,255,0) 35%, rgba(255,255,255,0) 65%, rgba(255,255,255,.08) 100%); mix-blend-mode:overlay; }
+  .ring-floor{ position:absolute; left:50%; bottom:-40px; width:80%; height:90px; transform:translateX(-50%) rotateX(80deg); background:radial-gradient(ellipse at center, rgba(255,255,255,.18), rgba(255,255,255,0) 65%); filter:blur(20px); }
+  .ring-ctrls{ display:flex; align-items:center; gap:14px; }
+  .ring-btn{ width:46px; height:46px; border-radius:50%; border:1px solid rgba(255,255,255,.28); background:rgba(255,255,255,.06); color:#fff; -webkit-backdrop-filter:blur(14px); backdrop-filter:blur(14px); display:grid; place-items:center; cursor:pointer; transition:.3s; }
+  .ring-btn:hover{ background:#fff; color:#0a0a0a; }
+  .ring-prog{ font-family:"Fraunces",serif; color:#fff; font-size:32px; font-weight:300; letter-spacing:-0.01em; }
+  .ring-prog .total{ opacity:.5; font-size:18px; }
+
+  /* Material tiles — cool floating 3D blocks */
+  .tilt-3d{ transform-style:preserve-3d; transition:transform .25s ease-out; }
+  .tile-row{ display:grid; grid-template-columns:repeat(4,1fr); gap:18px; margin-top:48px; perspective:1200px; }
+  @media (max-width:900px){ .tile-row{ grid-template-columns:repeat(2,1fr); } }
+  .mat-tile{ aspect-ratio:1/1.2; border-radius:18px; overflow:hidden; border:1px solid rgba(255,255,255,.15); position:relative; transform-style:preserve-3d; }
+  .mat-tile img{ width:100%; height:100%; object-fit:cover; transition:transform 1s ease; }
+  .mat-tile:hover img{ transform:scale(1.06); }
+  .mat-tile .cap{ position:absolute; left:14px; bottom:14px; right:14px; color:#fff; display:flex; justify-content:space-between; align-items:end; }
+  .mat-tile .cap .name{ font-family:"Fraunces",serif; font-size:15px; font-weight:400; }
+  .mat-tile .cap .meta{ font-size:9px; letter-spacing:.22em; text-transform:uppercase; opacity:.7; }
+
+  /* Form inputs */
+  .glass-input{
+    width:100%; background:rgba(255,255,255,.06);
+    border:1px solid rgba(255,255,255,.18); border-radius:14px;
+    padding:16px 18px; color:#fff; font-size:15px; font-weight:300;
+    outline:none; transition:.3s;
+    -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px);
+  }
+  .glass-input::placeholder{ color:rgba(255,255,255,.45); }
+  .glass-input:focus{ background:rgba(255,255,255,.12); border-color:rgba(255,255,255,.5); }
+
+  /* Cursor — soft glass dot */
+  .cursor-dot{ position:fixed; width:28px; height:28px; border-radius:50%; border:1px solid rgba(255,255,255,.6); pointer-events:none; z-index:99; mix-blend-mode:difference; transition:transform .25s ease, width .25s ease, height .25s ease; transform:translate(-50%,-50%); display:none; }
+  @media (hover:hover){ .cursor-dot{ display:block; } }
+
+  /* Service card hover */
+  .svc-card{ transition:transform .6s cubic-bezier(.2,.7,.2,1), background .6s ease, border-color .6s ease; }
+  .svc-card:hover{ transform:translateY(-6px); }
+  .svc-card .arrow{ transition:transform .5s cubic-bezier(.2,.7,.2,1); }
+  .svc-card:hover .arrow{ transform:translate(6px,-6px); }
+
+  /* Nav */
+  .nav-link{ position:relative; }
+  .nav-link::after{ content:""; position:absolute; left:0; right:0; bottom:-6px; height:1px; background:currentColor; transform:scaleX(0); transform-origin:left; transition:transform .4s cubic-bezier(.2,.7,.2,1); }
+  .nav-link:hover::after{ transform:scaleX(1); }
+
+  /* Btn */
+  .btn-glass{
+    display:inline-flex; align-items:center; gap:14px;
+    padding:18px 30px; border-radius:999px;
+    background:rgba(255,255,255,.10); border:1px solid rgba(255,255,255,.28);
+    -webkit-backdrop-filter:blur(16px); backdrop-filter:blur(16px);
+    color:#fff; font-size:12px; letter-spacing:.22em; text-transform:uppercase; font-weight:500;
+    transition:.4s; cursor:pointer;
+  }
+  .btn-glass:hover{ background:#fff; color:#0a0a0a; border-color:#fff; }
+  .btn-solid{
+    display:inline-flex; align-items:center; gap:14px;
+    padding:18px 30px; border-radius:999px;
+    background:#fff; color:#0a0a0a;
+    font-size:12px; letter-spacing:.22em; text-transform:uppercase; font-weight:600;
+    transition:.4s; cursor:pointer; border:1px solid #fff;
+  }
+  .btn-solid:hover{ background:transparent; color:#fff; }
+
+  /* Logo invert */
+  .logo-img{ height:26px; filter:invert(1) brightness(1.2); }
+</style>
+</head>
+<body data-screen-label="Sunctury Design Home">
+
+<div id="root"></div>
+
+<script type="text/babel" data-presets="env,react">
+const { useEffect, useRef, useState } = React;
+
+// ─── DATA ───────────────────────────────────────────
+const PROJECTS = [
+  { id:1, title:"The Living Canopy",   place:"Khan Bank · Atrium",           year:"2024", img:"assets/proj-khan-1.jpg" },
+  { id:2, title:"Boardroom 04",        place:"Private Client · Executive",   year:"2024", img:"assets/proj-ceo-1.jpg"  },
+  { id:3, title:"Hall of Light",       place:"Khan Bank · Concourse",         year:"2023", img:"assets/proj-khan-2.jpg" },
+  { id:4, title:"Service Pods",        place:"Khan Bank · Kiosk Bay",         year:"2023", img:"assets/proj-khan-3.jpg" },
+  { id:5, title:"The Geometric Wall",  place:"Executive Suite · Detail",      year:"2023", img:"assets/proj-ceo-2.jpg"  },
+  { id:6, title:"The Reading Room",    place:"Aminii Suuts · Library",        year:"2022", img:"assets/proj-library.jpg"},
+  { id:7, title:"The Quiet Room",      place:"Executive Suite · Lounge",      year:"2022", img:"assets/proj-rest-1.jpg" },
+  { id:8, title:"Atrium Reception",    place:"Khan Bank · Lobby",             year:"2022", img:"assets/proj-khan-5.jpg" },
+];
+
+const BG_IMAGES = [
+  "assets/proj-khan-1.jpg",
+  "assets/proj-khan-2.jpg",
+  "assets/proj-ceo-1.jpg",
+  "assets/proj-khan-4.jpg",
+];
+
+// ─── HOOK: reveal on scroll ─────────────────────────
+function useReveal(){
+  useEffect(()=>{
+    const io = new IntersectionObserver((entries)=>{
+      entries.forEach(e=>{
+        if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); }
+      });
+    },{threshold:0.12, rootMargin:"0px 0px -8% 0px"});
+    document.querySelectorAll('.sr, .sr-stagger').forEach(el=>io.observe(el));
+    return ()=>io.disconnect();
+  },[]);
+}
+
+// ─── BG MONTAGE ─────────────────────────────────────
+function Background(){
+  return (
+    <div className="bg-layer bg-vignette bg-grain">
+      <div className="bg-tile" style={{inset:"0 50% 50% 0", backgroundImage:`url(${BG_IMAGES[0]})`}} />
+      <div className="bg-tile" style={{inset:"0 0 50% 50%", backgroundImage:`url(${BG_IMAGES[1]})`}} />
+      <div className="bg-tile" style={{inset:"50% 50% 0 0", backgroundImage:`url(${BG_IMAGES[2]})`}} />
+      <div className="bg-tile" style={{inset:"50% 0 0 50%", backgroundImage:`url(${BG_IMAGES[3]})`}} />
+      <div className="orb" style={{width:520, height:520, background:"rgba(255,255,255,.10)", top:"15%", left:"55%"}} />
+      <div className="orb" style={{width:380, height:380, background:"rgba(255,255,255,.07)", top:"55%", left:"10%", animationDelay:"-6s"}} />
+    </div>
+  );
+}
+
+// ─── NAV ────────────────────────────────────────────
+function Nav(){
+  const [scrolled,setScrolled] = useState(false);
+  useEffect(()=>{
+    const onScroll = ()=> setScrolled(window.scrollY > 80);
+    window.addEventListener('scroll',onScroll,{passive:true});
+    return ()=> window.removeEventListener('scroll',onScroll);
+  },[]);
+  return (
+    <nav className="fixed top-0 inset-x-0 z-50 px-6 md:px-10 py-5 transition-all duration-500"
+         style={{ background: scrolled ? "rgba(10,10,10,.35)" : "transparent",
+                  backdropFilter: scrolled ? "blur(20px) saturate(140%)" : "blur(0px)",
+                  WebkitBackdropFilter: scrolled ? "blur(20px) saturate(140%)" : "blur(0px)",
+                  borderBottom: scrolled ? "1px solid rgba(255,255,255,.10)" : "1px solid transparent" }}>
+      <div className="max-w-[1440px] mx-auto flex items-center justify-between text-white">
+        <a href="#" className="flex items-center">
+          <img src="assets/logo.png" alt="Sunctury Design" className="logo-img" />
+        </a>
+        <ul className="hidden md:flex items-center gap-10 text-[12px] tracking-[.22em] uppercase font-medium">
+          <li><a href="#about" className="nav-link">About</a></li>
+          <li><a href="#services" className="nav-link">Services</a></li>
+          <li><a href="Portfolio.html" className="nav-link">Portfolio</a></li>
+        </ul>
+        <a href="#contact" className="btn-glass !py-3 !px-5 !text-[11px]">Contact</a>
+      </div>
+    </nav>
+  );
+}
+
+// ─── HERO ───────────────────────────────────────────
+function Hero(){
+  return (
+    <section className="relative min-h-screen flex items-center px-6 md:px-10 pt-32 pb-16" data-screen-label="Hero">
+      <div className="relative z-10 max-w-[1440px] mx-auto w-full">
+        <div className="flex items-center gap-3 mb-8 sr">
+          <span className="w-2 h-2 rounded-full bg-white/80"></span>
+          <span className="eyebrow text-white/80">Sunctury Design · Ulaanbaatar · Est. 2014</span>
+        </div>
+
+        <h1 className="hero-serif text-white text-[14vw] md:text-[10.5vw] lg:text-[9.5vw] hero-stack sr">
+          <span>Sunctury<span className="italic">.</span></span>
+          <span className="italic text-white/80">The future of</span>
+          <span>eco-office.</span>
+        </h1>
+
+        <div className="grid md:grid-cols-12 gap-8 mt-14 md:mt-20 items-end">
+          <p className="md:col-span-5 md:col-start-1 text-white/75 text-[15px] leading-[1.7] font-light max-w-md sr">
+            We design quiet, breathing workplaces — built from honest materials, daylight, and the steady presence of living plants. A studio of restraint, working at the edge of architecture and care.
+          </p>
+          <div className="md:col-span-4 md:col-start-9 flex md:justify-end gap-3 sr">
+            <a href="Portfolio.html" className="btn-solid">Selected Work</a>
+            <a href="#about" className="btn-glass">Our Practice</a>
+          </div>
+        </div>
+
+        <div className="mt-20 md:mt-24 pt-8 border-t border-white/15 flex justify-between items-center text-white/55 text-[11px] tracking-[.24em] uppercase sr">
+          <span>Vol. XII · 2025</span>
+          <div className="flex items-center gap-3 float-y">
+            <span>Scroll</span>
+            <span className="w-px h-10 bg-white/60 inline-block"></span>
+          </div>
+          <span>Index 001 / 004</span>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ─── ABOUT ─────────────────────────────────────────
+function About(){
+  return (
+    <section id="about" className="relative px-6 md:px-10 py-24 md:py-32" data-screen-label="About">
+      <div className="relative z-10 max-w-[1440px] mx-auto">
+        <div className="glass p-8 md:p-16 lg:p-24 sr">
+          <div className="grid md:grid-cols-12 gap-10 md:gap-16">
+            <div className="md:col-span-4">
+              <div className="eyebrow text-white/70 mb-6">01 — Our Practice</div>
+              <h2 className="display text-white text-5xl md:text-6xl lg:text-7xl mb-8">
+                Quiet rooms<br/><span className="ultralight">for loud work.</span>
+              </h2>
+              <div className="flex items-center gap-3 text-white/60 text-[12px] tracking-[.18em] uppercase">
+                <span className="w-8 h-px bg-white/60"></span>
+                Sunctury · Est. 2014
+              </div>
+            </div>
+
+            <div className="md:col-span-8 space-y-6 text-white/85 text-[16px] md:text-[17px] leading-[1.75] font-light">
+              <p className="text-2xl md:text-3xl text-white font-light leading-[1.35] mb-10" style={{letterSpacing:"-0.015em"}}>
+                Sunctury Design is a practice of <span className="font-normal italic">sustainable office design</span> — composing workspaces that breathe, age gracefully, and earn their place in the world.
+              </p>
+              <p>
+                Every project begins with the room as it is — its light, its acoustics, the way the people inside it already move. From there we draw quietly: reclaimed timbers, lime-washed plaster, soft wools, hand-thrown stoneware, and a careful botany of plants specified by species and climate.
+              </p>
+              <p>
+                We work with traceable materials, measured embodied carbon, and a refusal to add anything that doesn't earn its quiet. The result is a workplace that feels less like a product and more like a place.
+              </p>
+
+              <div className="grid grid-cols-3 gap-6 pt-8 mt-8 border-t border-white/15">
+                {[
+                  ["12","Years"],
+                  ["48","Sanctuaries"],
+                  ["94%","Reclaimed"],
+                ].map(([v,k])=>(
+                  <div key={k}>
+                    <div className="display text-white text-4xl md:text-5xl">{v}</div>
+                    <div className="text-white/55 text-[11px] tracking-[.22em] uppercase mt-2">{k}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ─── SERVICES ───────────────────────────────────────
+function Services(){
+  const items = [
+    { n:"01", t:"Interior Design", d:"End-to-end office interiors — feasibility, concept, detailed design, FF&E, and the day you move in. We carry a project from first sketch to final patina.", bg:"assets/svc-01.jpg", href:"Service - Interior Design.html" },
+    { n:"02", t:"Eco-Sourcing",    d:"A material library built on traceability. Reclaimed timbers, low-carbon plasters, recycled textiles, and a botany of plants specified by climate and care.", bg:"assets/svc-02.jpg", href:"Service - Eco-Sourcing.html" },
+    { n:"03", t:"Project Management", d:"We hold the schedule, the budget, and the standard. Weekly site visits, monthly sample reviews, and a single point of contact from kickoff to handover.", bg:"assets/svc-03.jpg", href:"Service - Project Management.html" },
+  ];
+  return (
+    <section id="services" className="relative px-6 md:px-10 py-24 md:py-32" data-screen-label="Services">
+      <div className="relative z-10 max-w-[1440px] mx-auto">
+        <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-8 mb-12 sr">
+          <div>
+            <div className="eyebrow text-white/70 mb-4">02 — Services</div>
+            <h2 className="display text-white text-5xl md:text-6xl lg:text-7xl">Three disciplines,<br/><span className="ultralight">one method.</span></h2>
+          </div>
+          <p className="text-white/65 max-w-sm text-[15px] leading-[1.7] font-light">
+            A small, vertically integrated team — so the hand that draws is the hand that specifies and the hand that signs off on site.
+          </p>
+        </div>
+
+        <div className="grid md:grid-cols-3 gap-6 sr-stagger">
+          {items.map((it,i)=>(
+            <a key={it.n} href={it.href} className="svc-card reveal-card glass relative !rounded-[28px] aspect-[4/5] flex flex-col no-underline">
+              {/* sharp bg */}
+              <div className="sharp" style={{backgroundImage:`url(${it.bg})`}}></div>
+              {/* frost overlay (the glass) */}
+              <div className="frost"></div>
+
+              {/* content */}
+              <div className="relative z-[2] flex flex-col justify-between h-full p-8 md:p-10 text-white">
+                <div className="flex justify-between items-start">
+                  <span className="eyebrow text-white/80">{it.n} / 03</span>
+                  <svg className="arrow w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4"><path d="M7 17 L17 7 M9 7 H17 V15"/></svg>
+                </div>
+                <div>
+                  <h3 className="display text-3xl md:text-4xl mb-4" style={{letterSpacing:"-0.03em"}}>{it.t}</h3>
+                  <p className="text-white/85 text-[14px] leading-[1.7] font-light max-w-sm">{it.d}</p>
+                  <div className="mt-8 inline-flex items-center gap-3 text-[11px] tracking-[.22em] uppercase text-white/85">
+                    <span className="w-8 h-px bg-white/85"></span>
+                    Read More
+                  </div>
+                </div>
+              </div>
+            </a>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ─── 3D ATELIER ─ SCROLL-DRIVEN ROTATING RING ───────
+function Atelier3D(){
+  const sectionRef = React.useRef(null);
+  const ringRef = React.useRef(null);
+  const tiltRef = React.useRef(null);
+  const [i,setI] = React.useState(0);
+  const RING = PROJECTS;
+  const COUNT = RING.length;
+  const STEP = 360/COUNT;
+  const RADIUS = 520; // px
+
+  // scroll-driven base rotation
+  React.useEffect(()=>{
+    let raf;
+    const onScroll = ()=>{
+      const sec = sectionRef.current; const r = ringRef.current; if(!sec||!r) return;
+      const rect = sec.getBoundingClientRect();
+      const vh = window.innerHeight;
+      const progress = 1 - (rect.top + rect.height/2)/(vh + rect.height/2);
+      // base rotation from scroll
+      const baseY = -progress*240;
+      r.dataset.scrollY = baseY;
+      r.style.transform = `translateZ(-${RADIUS}px) rotateX(-6deg) rotateY(${baseY - i*STEP}deg)`;
+    };
+    onScroll();
+    window.addEventListener('scroll', onScroll, {passive:true});
+    return ()=> window.removeEventListener('scroll', onScroll);
+  },[i]);
+
+  // mouse tilt on the scene (subtle parallax)
+  React.useEffect(()=>{
+    const el = tiltRef.current; if(!el) return;
+    const onMove = (e)=>{
+      const r = el.getBoundingClientRect();
+      const x = (e.clientX - r.left)/r.width - 0.5;
+      const y = (e.clientY - r.top)/r.height - 0.5;
+      el.style.transform = `rotateX(${-y*6}deg) rotateY(${x*8}deg)`;
+    };
+    const onLeave = ()=>{ el.style.transform = `rotateX(0deg) rotateY(0deg)`; };
+    el.addEventListener('mousemove', onMove);
+    el.addEventListener('mouseleave', onLeave);
+    return ()=>{ el.removeEventListener('mousemove', onMove); el.removeEventListener('mouseleave', onLeave); };
+  },[]);
+
+  const go = (d)=> setI((i+d+COUNT)%COUNT);
+
+  return (
+    <section className="relative px-6 md:px-10 py-24 md:py-32 overflow-hidden" data-screen-label="3D Atelier">
+      <div className="relative z-10 max-w-[1440px] mx-auto">
+        <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-8 mb-10 sr">
+          <div>
+            <div className="eyebrow text-white/70 mb-4">03 — Portfolio in Orbit</div>
+            <h2 className="hero-serif text-white text-5xl md:text-7xl">A studio<br/><span className="italic">in three dimensions.</span></h2>
+          </div>
+          <p className="text-white/65 max-w-sm text-[15px] leading-[1.7] font-light">
+            Scroll, hover, and drift through eight rooms suspended in space. Each frame is a real project — a sanctuary still standing.
+          </p>
+        </div>
+
+        <div className="glass-dark p-6 md:p-10 sr relative" style={{borderRadius:32}}>
+          <div ref={sectionRef} className="scene-3d relative">
+            <div ref={tiltRef} className="tilt-3d" style={{transformStyle:"preserve-3d"}}>
+              <div ref={ringRef} className="ring" style={{transform:`translateZ(-${RADIUS}px) rotateX(-6deg) rotateY(${-i*STEP}deg)`, transition:"transform .9s cubic-bezier(.2,.7,.2,1)"}}>
+                {RING.map((p,idx)=>{
+                  const angle = idx*STEP;
+                  return (
+                    <div key={p.id} className="card3d" style={{transform:`rotateY(${angle}deg) translateZ(${RADIUS}px)`}}>
+                      <img src={p.img} alt={p.title} />
+                      <div className="glare"></div>
+                      <div className="label">
+                        <h4>{p.title}</h4>
+                        <span className="y">{p.year}</span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+              <div className="ring-floor"></div>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between mt-8 px-2">
+            <div className="ring-prog">
+              {String(i+1).padStart(2,'0')}<span className="total"> / {String(COUNT).padStart(2,'0')}</span>
+            </div>
+            <div className="text-white/75 text-[13px] font-light max-w-xs hidden md:block">
+              <div className="text-white" style={{fontFamily:'Fraunces, serif', fontSize:'20px', letterSpacing:'-0.01em'}}>{RING[i].title}</div>
+              <div className="text-white/55 text-[11px] tracking-[.22em] uppercase mt-1">{RING[i].place}</div>
+            </div>
+            <div className="ring-ctrls">
+              <button className="ring-btn" onClick={()=>go(-1)} aria-label="Previous">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M15 6 L9 12 L15 18"/></svg>
+              </button>
+              <button className="ring-btn" onClick={()=>go(1)} aria-label="Next">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M9 6 L15 12 L9 18"/></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+  );
+}
+
+// ─── PORTFOLIO ──────────────────────────────────────
+function Portfolio(){
+  return (
+    <section id="portfolio" className="relative px-6 md:px-10 py-24 md:py-32" data-screen-label="Portfolio">
+      <div className="relative z-10 max-w-[1440px] mx-auto">
+        <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-8 mb-14 sr">
+          <div>
+            <div className="eyebrow text-white/70 mb-4">03 — Portfolio</div>
+            <h2 className="display text-white text-5xl md:text-6xl lg:text-7xl">Selected<br/><span className="ultralight">sanctuaries.</span></h2>
+          </div>
+          <p className="text-white/65 max-w-sm text-[15px] leading-[1.7] font-light">
+            Eight rooms, twelve years, one practice. Every frame a sanctuary still standing.
+          </p>
+        </div>
+
+        <div className="grid md:grid-cols-2 gap-5 md:gap-6 sr-stagger">
+          {PROJECTS.map((p,i)=>(
+            <article key={p.id} className="reveal-card aspect-[5/4] md:aspect-[5/4] group">
+              <div className="sharp" style={{backgroundImage:`url(${p.img})`}}></div>
+              <div className="frost"></div>
+              <div className="wipe-hint">
+                <div className="flex items-center gap-3">
+                  <span className="w-8 h-px bg-white/80"></span>
+                  <span>{p.title}</span>
+                </div>
+                <span>№ 0{String(p.id).padStart(2,'0')} · {p.year}</span>
+              </div>
+              {/* Floating title card on top */}
+              <div className="absolute top-6 left-6 right-6 z-[2] flex justify-between items-start text-white pointer-events-none">
+                <div>
+                  <div className="text-[11px] tracking-[.22em] uppercase opacity-70 mb-2">{p.place}</div>
+                  <h3 className="display text-2xl md:text-3xl" style={{letterSpacing:"-0.02em", textShadow:"0 2px 18px rgba(0,0,0,.45)"}}>{p.title}</h3>
+                </div>
+                <div className="text-[10px] tracking-[.22em] uppercase opacity-70 border border-white/40 rounded-full px-3 py-1.5" style={{ backdropFilter:"blur(8px)", WebkitBackdropFilter:"blur(8px)" }}>Hover</div>
+              </div>
+            </article>
+          ))}
+        </div>
+
+        <div className="flex justify-center mt-16 sr">
+          <a href="#" className="btn-glass">View Full Archive
+            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M5 12 H19 M13 6 L19 12 L13 18"/></svg>
+          </a>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ─── CONTACT ────────────────────────────────────────
+function Contact(){
+  // ── Formspree ──────────────────────────────────────
+  // Submissions are delivered to the email tied to this endpoint.
+  const FORMSPREE_ENDPOINT = "https://formspree.io/f/xjgzbaqw";
+  const [status,setStatus] = useState("idle"); // idle | sending | sent | error
+  return (
+    <section id="contact" className="relative px-6 md:px-10 py-24 md:py-32" data-screen-label="Contact">
+      <div className="relative z-10 max-w-[1440px] mx-auto">
+        <div className="glass p-8 md:p-16 lg:p-20 sr">
+          <div className="grid md:grid-cols-12 gap-12">
+            <div className="md:col-span-5">
+              <div className="eyebrow text-white/70 mb-4">04 — Begin</div>
+              <h2 className="hero-serif text-white text-5xl md:text-6xl mb-10">Tell us<br/><span className="italic">about the room.</span></h2>
+              <p className="text-white/75 text-[15px] leading-[1.75] font-light max-w-sm mb-12">
+                We read every enquiry personally and reply within five working days. The studio takes on eight commissions a year.
+              </p>
+              <div className="space-y-8 text-white">
+                <div>
+                  <div className="eyebrow text-white/50 mb-2">Studio</div>
+                  <div className="font-light text-lg">Bayngol District<br/>Ulaanbaatar, Mongolia</div>
+                </div>
+                <div>
+                  <div className="eyebrow text-white/50 mb-2">Correspondence</div>
+                  <a href="mailto:sunctury.d@gmail.com" className="font-light text-lg hover:opacity-70">sunctury.d@gmail.com</a>
+                </div>
+                <div>
+                  <div className="eyebrow text-white/50 mb-2">Telephone</div>
+                  <div className="font-light text-lg">+976 8958 9533</div>
+                </div>
+              </div>
+            </div>
+
+            <form className="md:col-span-7"
+                  action={FORMSPREE_ENDPOINT}
+                  method="POST"
+                  onSubmit={async (e)=>{
+              e.preventDefault();
+              const form = e.currentTarget;
+              setStatus("sending");
+
+              const data = new FormData(form);
+              // Helpful meta for the inbox
+              data.append("_subject", `New enquiry — ${(data.get('name')||'Sunctury Studio')}`);
+
+              try {
+                const res = await fetch(FORMSPREE_ENDPOINT, {
+                  method: "POST",
+                  headers: { Accept: "application/json" },
+                  body: data,
+                });
+                if (res.ok) {
+                  setStatus("sent");
+                  form.reset();
+                } else {
+                  const json = await res.json().catch(()=>({}));
+                  console.warn("Formspree error:", json);
+                  setStatus("error");
+                }
+              } catch (err) {
+                console.error(err);
+                setStatus("error");
+              }
+            }}>
+              {/* Honeypot — bots fill this, humans don't see it */}
+              <input type="text" name="_gotcha" style={{display:"none"}} tabIndex="-1" autoComplete="off" />
+              <div className="grid md:grid-cols-2 gap-4">
+                <input name="name"         className="glass-input" placeholder="Your name" required />
+                <input name="organisation" className="glass-input" placeholder="Organisation" />
+                <input name="email"        className="glass-input" type="email" placeholder="Email" required />
+                <input name="phone"        className="glass-input" type="tel" placeholder="Phone number" />
+                <input name="location"     className="glass-input md:col-span-2" placeholder="Project location" />
+                <select name="engagement"  className="glass-input md:col-span-2" defaultValue="">
+                  <option value="" disabled style={{color:"#000"}}>Engagement type</option>
+                  <option style={{color:"#000"}}>New workplace, ground up</option>
+                  <option style={{color:"#000"}}>Adaptive reuse</option>
+                  <option style={{color:"#000"}}>Refresh / extension</option>
+                  <option style={{color:"#000"}}>Biophilic consultancy</option>
+                  <option style={{color:"#000"}}>Bespoke joinery</option>
+                </select>
+                <textarea name="message"   className="glass-input md:col-span-2" rows="5" placeholder="Tell us about the building, the team, the timing." />
+              </div>
+              <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-6 mt-10">
+                <div className="text-white/45 text-[12px] leading-[1.6] max-w-xs">
+                  {status === "sent"  && <span className="text-white/85">Thank you — we received your enquiry and will reply within five working days.</span>}
+                  {status === "error" && <span className="text-white/85">Something went wrong. Please email <a href="mailto:sunctury.d@gmail.com" className="underline">sunctury.d@gmail.com</a> directly.</span>}
+                  {(status === "idle" || status === "sending") && "By sending you agree to our quiet correspondence — no marketing, just the studio."}
+                </div>
+                <button className="btn-solid" type="submit" disabled={status==="sending"}>
+                  {status === "sending" ? "Sending…" : status === "sent" ? "Sent — Thank You" : "Send Enquiry"}
+                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M5 12 H19 M13 6 L19 12 L13 18"/></svg>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="mt-16 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 text-white/45 text-[12px] tracking-[.04em] sr">
+          <div className="flex items-center gap-3">
+            <img src="assets/logo.png" alt="Sunctury Design" className="logo-img !h-5 opacity-70" />
+          </div>
+          <div>© 2026 Sunctury Design · Sanctuaries for the way we work</div>
+          <div className="flex gap-6">
+            <a href="https://www.instagram.com/suncturydesign/?hl=en" target="_blank" rel="noreferrer" className="nav-link">Instagram</a>
+            <a href="https://www.facebook.com/SuncturyDesign" target="_blank" rel="noreferrer" className="nav-link">Facebook</a>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ─── CURSOR ────────────────────────────────────────
+function Cursor(){
+  useEffect(()=>{
+    const dot = document.querySelector('.cursor-dot');
+    if(!dot) return;
+    let mx=0,my=0,cx=0,cy=0,raf;
+    const move = (e)=>{ mx=e.clientX; my=e.clientY; };
+    const tick = ()=>{ cx += (mx-cx)*0.22; cy += (my-cy)*0.22; dot.style.transform = `translate(${cx}px,${cy}px) translate(-50%,-50%)`; raf=requestAnimationFrame(tick); };
+    const over = ()=> dot.style.width = dot.style.height = '64px';
+    const out  = ()=> dot.style.width = dot.style.height = '28px';
+    window.addEventListener('mousemove',move);
+    document.querySelectorAll('a, button, .reveal-card').forEach(el=>{ el.addEventListener('mouseenter',over); el.addEventListener('mouseleave',out); });
+    tick();
+    return ()=>{ cancelAnimationFrame(raf); window.removeEventListener('mousemove',move); };
+  },[]);
+  return <div className="cursor-dot"></div>;
+}
+
+// ─── APP ────────────────────────────────────────────
+function App(){
+  useReveal();
+  return (
+    <>
+      <Background />
+      <Cursor />
+      <Nav />
+      <main className="relative">
+        <Hero />
+        <About />
+        <Services />
+        <Atelier3D />
+        <Contact />
+      </main>
+    </>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+<script>
+  // Force social links to open in a real new tab (escapes preview iframe)
+  document.addEventListener('click', function(e){
+    var a = e.target.closest && e.target.closest('a[href^="https://www.instagram.com"], a[href^="https://www.facebook.com"]');
+    if(!a) return;
+    e.preventDefault();
+    try { (window.top || window).open(a.href, '_blank', 'noreferrer'); }
+    catch(_) { window.open(a.href, '_blank', 'noreferrer'); }
+  }, true);
+</script>
+</body>
+</html>
